@@ -156,3 +156,18 @@ This project is licensed under the [MIT License](LICENSE).
 ## ❤️ Thanks for checking out MohallaMart!
 
 Built with ❤️ to empower local Indian kirana stores.
+---
+
+## 🔁 Frontend Team Note
+
+This backend is now fully ready and pushed.
+
+You can:
+- Clone this repo
+- Run `npm install`
+- Start the dev server with `npm run dev`
+- Use Postman or frontend to test APIs
+
+🧪 Postman testing will be done separately — you’ll receive collection file soon.
+
+💡 For any issue, contact the backend team.
