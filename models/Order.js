@@ -1,35 +1,73 @@
 const mongoose = require("mongoose");
 
-const OrderSchema = new mongoose.Schema({
+const orderSchema = new mongoose.Schema({
   shopId: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "Shop",
-    required: true,
+    ref: "Shop"
   },
-  customerName: {
-    type: String,
-    required: true,
-  },
-  phone: {
-    type: String,
-    required: true,
-  },
+  customerName: String,
+  customerPhone: String,
   items: [
     {
       name: String,
-      price: Number,
       quantity: Number,
-    },
+      price: Number,
+      status: {
+        type: String,
+        default: "pending"
+      }
+    }
   ],
-  totalAmount: {
-    type: Number,
-    required: true,
-  },
+  totalAmount: Number,
   status: {
     type: String,
-    enum: ["Pending", "Completed", "Cancelled"],
-    default: "Pending",
+    enum: ["pending", "claimed", "ready", "out_for_delivery", "delivered", "cancelled"],
+    default: "pending"
   },
+  customerLocation: {
+    type: {
+      type: String,
+      enum: ["Point"],
+      default: "Point"
+    },
+    coordinates: {
+      type: [Number],
+      required: true
+    }
+  },
+  claimedBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Shop",
+    default: null
+  },
+  deliveryMode: {
+    type: String,
+    enum: ["helper", "gig_worker", null],
+    default: null
+  },
+  deliveryBy: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "User", // future delivery partner/helper user
+    default: null
+  },
+  tipAmount: {
+    type: Number,
+    default: 0
+  },
+  paidOnline: {
+    type: Boolean,
+    default: false
+  },
+  deliveredAt: {
+    type: Date,
+    default: null
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  }
 });
 
-module.exports = mongoose.model("Order", OrderSchema);
+orderSchema.index({ customerLocation: "2dsphere" });
+
+module.exports = mongoose.model("Order", orderSchema);

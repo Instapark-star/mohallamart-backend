@@ -9,16 +9,16 @@ const {
   deleteProduct
 } = require("../controllers/inventoryController");
 
-// Add product (with image upload)
+// ➕ Add new product to a shop's inventory (with optional image)
 router.post("/:shopId/inventory", upload.single("image"), addProduct);
 
-// Get all products
+// 📦 Get all products for a shop
 router.get("/:shopId/inventory", getInventory);
 
-// Edit product
+// ✏️ Update a product (optionally update image too)
 router.put("/product/:productId", upload.single("image"), updateProduct);
 
-// Delete product
+// 🗑️ Delete a product
 router.delete("/product/:productId", deleteProduct);
 
 module.exports = router;

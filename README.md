@@ -1,173 +1,165 @@
 # 🛒 MohallaMart Backend
 
-A simple yet powerful backend system to digitize local kirana/dukaan operations — built with Node.js, Express, and MongoDB.
-
-## 🚀 Project Overview
-
-MohallaMart allows small shopkeepers to:
-- Register their shop
-- Add/manage inventory (with product images)
-- Create customer orders
-- Instantly generate WhatsApp order messages
-
-> 🧠 “Think of it as a mini Amazon for local businesses — powered by WhatsApp.”
+This is the backend server for **MohallaMart** — a hyperlocal dukaan & delivery platform that enables customers to place orders, shopkeepers to manage inventory, helpers or gig workers to assist with deliveries, and includes support for subscriptions, medicine, alcohol, and vegetable delivery from nearby shops.
 
 ---
 
-## 📦 Tech Stack
+## ✅ Features Implemented
 
-- **Node.js** + **Express.js**
-- **MongoDB** (local)
-- **Multer** for image uploads
-- **Postman** for API testing
-- **VS Code** + PowerShell Terminal (Windows)
+| Feature                                 | Status  | Endpoint                               |
+|----------------------------------------|---------|----------------------------------------|
+| Shop Registration with Geolocation     | ✅ Done | `POST /api/shop/register`              |
+| Product Add/Edit/Delete with Image     | ✅ Done | `POST /api/:shopId/inventory`          |
+| Get Inventory per Shop                 | ✅ Done | `GET /api/:shopId/inventory`           |
+| Order Creation + WhatsApp Integration  | ✅ Done | `POST /api/shop/:shopId/order`         |
+| View All Orders of a Shop              | ✅ Done | `GET /api/shop/:shopId/orders`         |
+| View Single Order by ID                | ✅ Done | `GET /api/order/:orderId`              |
+| Delete Order                           | ✅ Done | `DELETE /api/order/:orderId`           |
+| Update Order Status                    | ✅ Done | `PUT /api/order/:orderId/status`       |
+| Claim Order (First Come Logic)         | ✅ Done | `POST /api/order/:orderId/claim`       |
+| Assign Delivery Person (helper/gig)    | ✅ Done | `POST /api/order/:orderId/assign`      |
+| Mark Order as Delivered                | ✅ Done | `POST /api/order/:orderId/delivered`   |
+| Find Nearby Shops (within 2km)         | ✅ Done | `POST /api/order/nearby-shops`         |
+| Register User (helper/gig/customer)    | ✅ Done | `POST /api/user/register`              |
+| Find Nearby Helpers/Gig Workers        | ✅ Done | `POST /api/user/nearby`                |
+| Upgrade Shop Subscription Tier         | ✅ Done | `PUT /api/shop/:shopId/upgrade`        |
+
+---
+
+## 🗃️ Models
+
+### 🏪 Shop Model (`models/Shop.js`)
+- `shopName`, `ownerName`, `phone`, `address`
+- `location`: GeoJSON Point
+- `subscriptionTier`: `"standard" | "advanced" | "big_deal"`
+- `subscriptionValidTill`: Date
+
+### 📦 Product Model (`models/Product.js`)
+- `shopId`, `name`, `quantity`, `price`, `image`
+- Category flags: `isMedicine`, `isAlcohol`
+
+### 📬 Order Model (`models/Order.js`)
+- `shopId`, `customerName`, `customerPhone`, `items[]`
+- `customerLocation`: GeoJSON Point
+- `claimedBy`: Shop ID
+- Delivery fields:
+  - `deliveryBy`, `deliveryMode`, `tipAmount`, `paidOnline`
+- `status`: `"pending" → "claimed" → "ready" → "out_for_delivery" → "delivered"`
+- `deliveredAt`: Date
+
+### 👤 User Model (`models/User.js`)
+- `name`, `phone`, `role`: `"helper" | "gig_worker" | "admin" | "customer"`
+- `location`: GeoJSON Point
+
+---
+
+## ⚙️ Tech Stack
+
+- Node.js + Express
+- MongoDB with Mongoose
+- Multer (for image upload)
+- RESTful API design
+- Geo queries using `2dsphere` index
+- WhatsApp integration for customer messaging
 
 ---
 
 ## 📁 Folder Structure
-```
+
 mohallamart-backend/
-├── models/                 # Mongoose schemas for Shop, Product, Order
-├── controllers/            # All business logic (Shop, Inventory, Order)
-├── routes/                 # Express route handlers
-├── middlewares/            # Image upload middleware (Multer)
-├── public/uploads/         # Folder to store uploaded product images
-├── app.js                  # Main Express app with all routes
-├── server.js               # Server entry point, MongoDB connection
-├── .env                    # Environment variables (PORT, MONGO_URI)
-└── package.json            # Project config + scripts
-```
-## 📌 API Endpoints Summary
----
+├── controllers/
+├── models/
+├── routes/
+├── uploads/ # Static image folder
+├── .env
+├── app.js
+├── server.js
+└── README.md
 
-## 📤 Sample Request Payload — Create Order
-
-### Endpoint:
-```http
-POST /api/shop/:shopId/order
-
-### 🏪 Shop Routes
-| Method | Route                 | Description         |
-|--------|----------------------|---------------------|
-| POST   | `/api/shop/register` | Register a new shop |
+yaml
+Copy
+Edit
 
 ---
 
-### 📦 Inventory Routes
-| Method | Route                            | Description               |
-|--------|----------------------------------|---------------------------|
-| POST   | `/api/:shopId/inventory`         | Add product with image    |
-| GET    | `/api/:shopId/inventory`         | Get shop inventory        |
-| PUT    | `/api/product/:productId`        | Edit a product            |
-| DELETE | `/api/product/:productId`        | Delete a product          |
+## 🧪 Postman Testing
+
+❌ **Not yet tested via Postman.**  
+Testing is planned but skipped during development phase to fast-track MVP delivery and frontend handover.
 
 ---
 
-### 📑 Order Routes
-| Method | Route                             | Description                |
-|--------|-----------------------------------|----------------------------|
-| POST   | `/api/shop/:shopId/order`         | Create a new order         |
-| GET    | `/api/shop/:shopId/orders`        | View all orders for shop   |
-| GET    | `/api/order/:orderId`             | Get order by ID            |
-| PUT    | `/api/order/:orderId/status`      | Update order status        |
-| DELETE | `/api/order/:orderId`             | Delete order               |
+## 📤 Deployment & Run
 
-✅ Every order also auto-generates a WhatsApp link with product + bill details.
+- Clone the repo and run:
 
-{
-  "customerName": "Anita Sharma",
-  "customerPhone": "9876543210",
-  "items": [
-    {
-      "productId": "64f0c0cbb2f4f72a3c0a77d1",
-      "quantity": 2
-    },
-    {
-      "productId": "64f0c0dcb2f4f72a3c0a77d5",
-      "quantity": 1
-    }
-  ]
-}
-{
-  "message": "Order created successfully",
-  "order": {
-    "_id": "64f0e9a6b2f4f72a3c0a78c9",
-    "shopId": "64f0c0a1b2f4f72a3c0a77c0",
-    "customerName": "Anita Sharma",
-    "customerPhone": "9876543210",
-    "items": [
-      {
-        "product": {
-          "name": "Aashirvaad Atta",
-          "price": 250
-        },
-        "quantity": 2
-      },
-      {
-        "product": {
-          "name": "Maggi Noodles",
-          "price": 15
-        },
-        "quantity": 1
-      }
-    ],
-    "totalAmount": 515,
-    "status": "Pending",
-    "whatsappLink": "https://wa.me/919876543210?text=Your%20order%20details%3A%20..."
-  }
-}
----
-
-## ⚙️ Run Locally
-
-### 1️⃣ Clone the repo:
 ```bash
-git clone https://github.com/yourusername/mohallamart-backend.git
-cd mohallamart-backend
+npm install
+npm run dev
+.env required with:
+
+env
+Copy
+Edit
+PORT=5000
+MONGO_URI=your_mongo_connection_string
+Access on: http://localhost:5000
+
+💡 Key Business Logic
+Orders are broadcasted to shops within 2km.
+
+First shop to claim gets the order.
+
+Delivery options:
+
+🚶‍♂️ Helper (normal users, tip-based, online prepaid only)
+
+🛵 Gig Workers (cash/online support, delivery app concept)
+
+Helpers are not full-time delivery agents but casual workers.
+
+Delivery people or helpers can be assigned manually.
+
+Orders include live geolocation for matching logistics.
+
+Customers may be offered handpicked vegetables, medicines, alcohol from local verified vendors.
+
+💰 Revenue Model
+No commission cut from shopkeepers.
+
+Instead, shops pay a monthly subscription:
+
+standard, advanced, or big_deal
+
+Subscription gives visibility, analytics & claim priority.
+
+🧭 Future Scope
+✅ Frontend in React / Next.js
+
+🔐 OTP login, JWT-based auth
+
+🛍️ Customer order dashboard
+
+📊 Shop analytics dashboard
+
+💸 Razorpay or UPI integration
+
+🧾 PDF receipts & order history
+
+📱 Native app for helpers and gig workers
+
+🤝 Built With
+💻 Node.js + Express + MongoDB
+
+🧠 Business Logic by MohallaMart Team
+
+📦 Modular Clean Folder Structure
+
+🤖 Co-developed with help of AI (ChatGPT)
+
+yaml
+Copy
+Edit
+
 ---
 
-## 📬 Postman API Testing
-
-Use the Postman tool to test all routes.
-
-🛠️ Base URL:
-http://localhost:5000/
-
-### 🔗 Postman Collection:
-A collection of all routes (shop, inventory, orders) will be exported as a `.json` file soon.
-
-➡️ You'll be able to import it into Postman and test everything in a click.
-
----
-
-[Download Collection](link-to-postman-collection.json)
-## 🤝 Contributing
-
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
----
-
-## 📄 License
-
-This project is licensed under the [MIT License](LICENSE).
-
----
-
-## ❤️ Thanks for checking out MohallaMart!
-
-Built with ❤️ to empower local Indian kirana stores.
----
-
-## 🔁 Frontend Team Note
-
-This backend is now fully ready and pushed.
-
-You can:
-- Clone this repo
-- Run `npm install`
-- Start the dev server with `npm run dev`
-- Use Postman or frontend to test APIs
-
-🧪 Postman testing will be done separately — you’ll receive collection file soon.
-
-💡 For any issue, contact the backend team.
